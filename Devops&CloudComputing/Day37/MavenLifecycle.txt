@@ -1,0 +1,124 @@
+ MAVEN LIFECYCLE
+------------------------------------------------------------
+Definition:
+Maven Lifecycle is a sequence of steps (phases) that Maven 
+follows to build and manage a project.
+It defines “HOW a project is built step by step”
+
+Ex:-
+Think of it like:Cooking Process 🍳
+
+- Clean kitchen → clean
+- Prepare ingredients → compile
+- Taste/check → test
+- Pack food → package
+- Store → install
+
+Main Lifecycle Phases:
+1. clean
+2. validate
+3. compile
+4. test
+5. package
+6. verify
+7. install
+8. deploy
+------------------------------------------------------------
+7. IMPORTANT PHASES 
+------------------------------------------------------------
+1. CLEAN
+
+Command:
+mvn clean
+
+What it does:
+- Deletes target folder (old build files)
+- Ensures fresh build
+------------------------------------------------------------
+2. COMPILE
+--------------------------------
+Command:
+mvn compile
+
+What it does:
+- Compiles source code
+- Converts .java → .class files
+------------------------------------------------------------
+3. TEST
+--------------------------------
+Command:
+mvn test
+
+What it does:
+- Runs unit tests
+- Uses frameworks like JUnit
+------------------------------------------------------------
+4. PACKAGE
+--------------------------------
+Command:
+mvn package
+
+What it does:
+- Creates JAR/WAR file
+- Output stored in target folder
+------------------------------------------------------------
+5. INSTALL
+--------------------------------
+Command:
+mvn install
+
+What it does:
+- Stores built package in local repository
+- Path: ~/.m2/repository
+- Allows reuse in other projects
+------------------------------------------------------------
+6. DEPLOY (ADVANCED)
+--------------------------------
+Command:
+mvn deploy
+
+What it does:
+- Uploads artifact to remote repository
+------------------------------------------------------------
+8. IMPORTANT CONCEPT (VERY IMPORTANT)
+------------------------------------------------------------
+When you run a phase → all previous phases also run
+
+Example:
+mvn install
+
+Execution Order:
+clean → validate → compile → test → package → install
+
+Note:-You never run all commands separately — you just run ONE command like mvn install, and Maven does everything
+------------------------------------------------------------
+9. PROJECT STRUCTURE (STANDARD MAVEN)
+------------------------------------------------------------
+my-app/
+│
+├── src/
+│   ├── main/
+│   │   ├── java/        → source code
+│   │   └── resources/   → config files
+│   │
+│   └── test/
+│       └── java/        → test cases
+│
+├── target/              → compiled output
+├── pom.xml              → configuration file
+
+------------------------------------------------------------
+10. REAL-WORLD ANALOGY
+------------------------------------------------------------
+Maven = Chef 👨‍🍳
+POM.xml = Recipe 📄
+Dependencies = Ingredients 🧂
+Lifecycle = Cooking Steps 🍳
+
+You just say:
+"Make dish"
+
+Chef automatically:
+- Gets ingredients
+- Follows steps
+- Serves final dish
