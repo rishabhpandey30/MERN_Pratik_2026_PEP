@@ -1,0 +1,340 @@
+### Jenkins
+-------------------------------------------------------------------------------------
+Jenkins is an open-source continuous integration (CI) and continuous delivery (CD) tool
+that enables developers to automatically build, test, and deploy software in a reliable and efficient manner.
+
+Q. What Jenkins Really Does ?
+At its core, Jenkins helps developers automate repetitive tasks in the software lifecycle. 
+Instead of manually compiling code, running tests, or deploying apps, Jenkins does it automatically whenever changes are made.
+
+** How Jenkins Works (Simple Flow)
+- Developer writes code
+- Code is pushed to a repository (e.g., GitHub)
+- Jenkins detects the change
+- Jenkins builds the project
+- Runs automated tests
+- Deploys the application if everything passes
+
+ Jenkins is like a robot assistant for developers that continuously checks, builds, tests, and delivers software automatically
+----------------------------------------------------------------------------------------
+** Step-by-Step: EC2 + Docker + Jenkins Setup
+---------------------------------------------------------------------------------------
+1.Create EC2 Instance (AWS)
+
+Go to Amazon Web Services Console
+Launch Instance:
+AMI: Ubuntu (22.04 recommended)
+Instance type: t2.micro (free tier)
+Key pair: create/download .pem
+Security Group:
+SSH → Port 22
+Custom TCP → Port 8080 (for Jenkins)
+Custom TCP → Port 50000 (optional, Jenkins agents)
+Custom TCP → Port 3000 (or your app port): This is mandatory to see your live website in the browser.
+----------------------------------
+2.Connect to EC2 (SSH)
+
+ssh -i your-key.pem ubuntu@ your public ipv4 address
+54.164.121.3
+-----------------------------------
+3.Install Docker
+sudo apt update
+sudo apt install docker.io -y
+
+(a).Start and enable Docker:
+
+sudo systemctl start docker
+sudo systemctl enable docker
+
+To check if it is running :
+use command:- sudo systemctl status docker
+You will see it's  status running 
+
+(b). Add Docker Permissions:
+  For group activation:-
+  sudo usermod -aG docker ubuntu
+  newgrp docker
+
+Instead of exiting, newgrp docker applies permissions instantly.
+
+(c).Verify Docker
+
+docker --version
+docker run hello-world
+
+Expected output:
+Docker version prints
+“Hello from Docker!” message appears
+----------------------------------
+4.Run Jenkins Container
+
+docker run -d --name jenkins \
+  -p 8080:8080 -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /usr/bin/docker:/usr/bin/docker \
+  jenkins/jenkins:lts
+
+Q.What each part does ?
+-d → run in background
+-p 8080:8080 → Jenkins UI (browser access)
+-p 50000:50000 → agent communication (optional but useful)
+--name jenkins → container name
+--restart always → auto-start on reboot
+-v jenkins_home:/var/jenkins_home → persistent data (VERY IMPORTANT)
+jenkins/jenkins:lts → stable Jenkins image
+
+This ensures:
+Data persistence (important!)
+Auto-restart on reboot
+Note:-
+Left side = your server port
+Right side = container port
+
+After it open the public ip and add jenkins port to set admin passwaord.
+-----------------------------------------
+5.Get Jenkins Admin Password
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+-----------------------------------------
+6.Access Jenkins in Browser
+
+http://<your-ec2-public-ip>:8080
+Paste the password → Continue setup
+-----------------------------------------
+7.Install Plugins
+Click Install Suggested Plugins
+Create admin user
+
+Install these plugins:
+✅ Git -------------->Already installed with suggested plugins
+✅ Pipeline
+✅ GitHub Integration
+✅ Docker Pipeline
+✅ NodeJS (important for MERN)
+
+Final Permission Check (PowerShell):
+Before you run your first build, run this command in your SSH session to prevent the "Permission Denied"
+sudo chmod 666 /var/run/docker.sock
+
+----------------------------------------------------------------------------
+8.create the pipeline:
+(a).Create the Item
+Click New Item on the top left.
+Name: devops-blog-pipeline
+Type: Select Pipeline (the icon with the dots and lines).
+Click OK.
+
+(b).Configure the GitHub Link
+Go to general tab check box for github project and pasthe the github url
+
+(c).Build Triggers Tab: 
+Check the box for GitHub hook trigger for GITScm polling.
+This is what makes the webhooks you set up earlier actually work.
+
+(d).Link the Jenkinsfile
+
+Scroll down to the Pipeline section.
+Definition: Change "Pipeline script" to Pipeline script from SCM.
+SCM: Select Git.
+Repository URL: Paste the github repository url
+Branch Specifier: Change */master to */main.
+Script Path: Ensure it says Jenkinsfile.
+
+(e).Save and Run
+Click Save.
+
+On the next screen, click Build Now on the left sidebar.
+What to watch for:
+----------------------------------------------------------------------------------------
+### Jenkinsfile
+----------------------------------------------------------------------------------------
+A Jenkinsfile is a text file (written in Groovy-based syntax) that defines the entire automation process (pipeline) for a project.
+It tells Jenkins what to do and how to do it.
+
+Ex:-
+```
+pipeline {
+    agent any
+
+    stages {
+        stage('Build Frontend Image') {
+            steps {
+                sh 'docker build -t frontend-app .'
+            }
+        }
+
+        stage('Test Stage') {
+    steps {
+        echo 'Starting Health Check Test...'
+        sh '''
+        docker run -d --name test-container -p 3001:80 frontend-app
+        sleep 5
+        # CRITICAL: Use 172.17.0.1 (Docker Bridge IP) instead of localhost
+        curl -f http://172.17.0.1:3001 || (docker stop test-container && docker rm test-container && exit 1)
+        docker stop test-container && docker rm test-container
+        '''
+    }
+}
+
+        stage('Deploy to EC2') {
+            steps {
+                sh '''
+                docker stop frontend-app || true
+                docker rm frontend-app || true
+                docker run -d -p 3000:80 --name frontend-app frontend-app
+                '''
+            }
+        }
+    }
+}
+```
+Q. Why it's important ?
+- Stored in your code repository (like Git)
+- Version-controlled
+- Makes pipelines reproducible and transparent
+
+Think of it as a recipe for your automation workflow
+
+## Declarative Pipeline
+A Declarative Pipeline is a structured and simplified way to write Jenkins pipelines using predefined syntax.
+It focuses on readability and simplicity, using a clear format.
+
+Characteristics:-
+- Uses pipeline {} block
+- Easier to learn than scripted pipelines
+- Enforces a standard structure
+
+** Stages
+
+Stages are logical steps in a pipeline that group related tasks.
+Each stage represents one phase of the workflow.
+
+Common Stages:
+- Build
+- Test
+- Deploy
+
+Ex:-
+```
+stages {
+    stage('Build') {
+        steps {
+            echo 'Building...'
+        }
+    }
+    stage('Test') {
+        steps {
+            echo 'Testing...'
+        }
+    }
+}
+```
+Q. Why stages matter ?
+- Organize pipeline clearly
+- Show progress in Jenkins UI
+- Help debug failures easily
+---------------------------------------------------------
+### Webhooks
+A webhook is a mechanism that automatically notifies Jenkins when an event happens in another system (like GitHub).
+Instead of Jenkins constantly checking for changes, the repository tells Jenkins instantly.
+
+Q. How Webhooks Work ?
+- Developer pushes code to GitHub
+- GitHub sends a webhook (HTTP request)
+- Jenkins receives it
+- Pipeline starts automatically
+
+## Benefits
+- Real-time automation
+- Faster builds
+- No need for polling (checking repeatedly)
+
+## Guide: CI/CD Deployment with Jenkins, Docker, and AWS
+-----------------------------------------------------------------------
+ Pipeline with Jenkinsfile (The "Pro" Way)
+-----------------------------------------------------------------------
+1. The Preparation: Create a file named Jenkinsfile (no extension) inside your GitHub repo root.
+2. The Content: Paste this refined version:
+```
+pipeline {
+    agent any
+    stages {
+        stage('Build Image') {
+            steps {
+                sh 'docker build --network host -t my-backend .'
+            }
+        }
+        stage('Cleanup Old Container') {
+            steps {
+                sh 'docker stop express-app || true'
+                sh 'docker rm express-app || true'
+            }
+        }
+        stage('Deploy New Version') {
+            steps {
+                sh 'docker run -d --name express-app -p 3000:3000 my-backend'
+            }
+        }
+    }
+}
+```
+3. Jenkins Config:
+
+- New Item -> Pipeline.
+
+- Definition: Select Pipeline script from SCM.
+
+- SCM: Git (Enter your URL and Branch).
+
+- Script Path: Ensure it says Jenkinsfile.
+
+This is Configuration as Code. If our Jenkins server is deleted, our deployment logic is safe because it lives in GitHub with our code.
+This is how the best engineering teams in the world operate.
+-------------------------------------------------------------------
+### Execution & Verification (The "Moment of Truth")
+
+- Once you have configured one of the Method 5 options, you must run it and verify the deployment.
+
+(a). Trigger the Build: Click Build Now on the left-hand menu.
+
+(b). Monitor the Console: * Click the build number (e.g., #1). and Select Console Output.
+
+(c). Verify the Container: Go back to your EC2 terminal and run:
+```
+docker ps
+```
+(d). Check the Browser: Visit http://<YOUR_EC2_IP>:3000.
+------------------------------------------------------------------
+### Phase 7: Automation (Triggers & Webhooks)
+
+Step 1: In Jenkins UI
+
+(a). Go to Configure -> Build Triggers.
+(b). Check GitHub hook trigger for GITScm polling.
+(c). Save.
+
+Step 2: In GitHub Settings
+
+(a). Go to your Repository -> Settings -> Webhooks -> Add webhook.
+(b). Payload URL: http:/54.80.26.17:8080/github-webhook/
+
+* Note: The trailing slash '/ ' after github-webhook is mandatory!
+
+(c). Content type: application/json.
+
+ (d).Select event and---> Just the push event.
+
+(e). Click Add webhook.
+
+Ex:-
+http:/54.224.255.33:8080/github-webhook/
+--------------------------------------------------------------------
+Troubleshooting Cheat Sheet
+Error: docker: not found → Check if you mounted -v /usr/bin/docker:/usr/bin/docker when starting the Jenkins container.
+
+Error: Permission Denied on docker.sock → Run sudo chmod 666 /var/run/docker.sock on the EC2 host.
+
+Error: curl: (7) Failed to connect → Ensure your test stage uses 172.17.0.1 instead of localhost.
+
+Site won't load in browser → Check AWS Security Groups to ensure the app port (e.g., 3000) is open to 0.0.0.0/0.

@@ -1,0 +1,137 @@
+------------------------------------------------------------
+**SONARQUBE**
+------------------------------------------------------------
+Q.WHAT IS SONARQUBE?
+
+SonarQube is a code quality and security analysis tool that scans your source code to detect bugs, vulnerabilities, and maintainability issues.
+
+In Simple term:-
+SonarQube = Code Quality Checker 🔍
+
+It helps developers understand:
+What is wrong
+Where it is wrong
+How to fix it
+
+Q.WHAT DOES SONARQUBE DO?
+
+SonarQube analyzes your code and identifies:
+
+-  Bugs → Logical or runtime errors
+- Security Vulnerabilities → Risks like SQL injection, XSS
+- Code Smells → Poor coding practices
+- Duplicate Code → Repeated blocks of code
+- Complexity Issues → Hard-to-maintain logic
+
+Key Features:
+Quality Gates → Pass/Fail criteria for code quality
+Code Coverage → Measures test coverage
+Static Code Analysis → No need to run code
+Integrates with tools like:
+Jenkins
+GitHub
+GitLab
+------------------------------------------------------------
+WHAT IS STATIC ANALYSIS?
+------------------------------------------------------------
+Static analysis is the process of analyzing source code without executing it to detect potential issues early in the development cycle.
+
+In simple terms:
+Static Analysis = Checking code without running it 🔍
+
+What it Detects:
+- Bugs (logical mistakes)
+- Security vulnerabilities
+- Code smells (bad practices)
+- Code complexity issues
+- Duplicate code
+
+How It Works (Flow):
+1. Developer writes code
+2. Code pushed to Git
+3. CI/CD pipeline runs
+4. SonarQube scans the code
+5. Generates a detailed report
+------------------------------------------------------------
+WHAT SONARQUBE CHECKS
+------------------------------------------------------------
+- Code quality
+- Security issues
+- Duplicate code
+- Complexity
+- Test coverage
+------------------------------------------------------------
+HOW IT WORKS
+------------------------------------------------------------
+1. Code pushed to repository
+2. CI/CD pipeline runs
+3. SonarQube scans code
+4. Generates report
+------------------------------------------------------------
+WHY IMPORTANT
+------------------------------------------------------------
+- Improves code quality
+- Detects bugs early
+- Maintains standards
+6. QUALITY GATES
+Definition:
+Quality Gate is a set of conditions that code must pass 
+before it is accepted or deployed.
+------------------------------------------------------------
+EXAMPLES OF CONDITIONS
+------------------------------------------------------------
+- No critical bugs
+- Code coverage > 80%
+- No security vulnerabilities
+------------------------------------------------------------
+HOW IT WORKS
+------------------------------------------------------------
+After SonarQube analysis:
+
+IF conditions satisfied → PASS   
+IF conditions fail → BLOCK 
+------------------------------------------------------------
+WHY IMPORTANT
+------------------------------------------------------------
+- Prevents bad code from production
+- Enforces coding standards
+- Ensures reliability
+------------------------------------------------------------
+ANALOGY
+------------------------------------------------------------
+Q. What is Quality Gate?
+A Quality Gate in SonarQube is a set of conditions that determines whether code is fit for deployment based on quality and security metrics.
+
+Quality Gate = Exam Pass Criteria 
+
+Fail → Not promoted
+Pass → Move forward
+-----------------------------------------------------------
+
+COMPLETE FLOW (IMPORTANT FOR UNDERSTANDING)
+Developer writes code
+        ↓
+Push to Git  ------------------------------------>Developer works ends here
+        ↓
+CI/CD Pipeline starts -------------------------->Done by jenkins(mostly)
+        ↓
+Maven builds project (mvn clean install)
+        ↓
+Artifact generated (JAR/WAR)
+        ↓
+Stored in Hosted Repository
+        ↓
+SonarQube analyzes code
+        ↓
+Quality Gate applied
+        ↓
+IF PASS → Deploy 
+IF FAIL → Fix issues 
+
+--------------------------------------------------------
+Mostly Tools Involved :
+Git → Code management
+Apache Maven → Build & packaging
+Sonatype Nexus Repository / JFrog Artifactory → Artifact storage
+SonarQube → Code analysis
+-------------------------------------------------------
