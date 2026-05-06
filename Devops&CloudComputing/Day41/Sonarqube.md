@@ -98,7 +98,7 @@ Before you run your first build, run this command in your SSH session to prevent
 sudo chmod 666 /var/run/docker.sock
 ---------------------------------------------
 8.(a)SonarQube Integration:
-Access http://<EC2-IP>:9000 (Login: admin / admin).  
+Access http://98.94.102.71:9000 (Login: admin / admin).  
 Go to My Account > Security and generate a Global Analysis Token.
 
 The Handshake (Jenkins Configuration):
@@ -119,7 +119,7 @@ Name: Enter sonar-scanner.
 Check Install automatically.
 
 (b)Nexus Initial Configuration
-Access: http://<EC2-IP>:8081
+Access: http://98.94.102.71:8081
 Password: Click "Sign In." The default user is admin. To get the password:-
 docker exec nexus cat /nexus-data/admin.password
 Setup Wizard: Follow the prompts to set a new password and enable Anonymous Access (for simplicity in this demo).
@@ -142,17 +142,7 @@ Kind: Select Username with password.
 Username: admin.
 Password: (The new password you set during Nexus setup).
 ID: Enter nexus-creds. CRITICAL: This ID must exactly match the credentialsId used in your Jenkinsfile.
-Description: Nexus Repository Credentials.
-
-Fill in the Details:
-Kind: Select Username with password from the dropdown.
-Scope: Keep it as Global.
-Username: Enter admin (or your Nexus username).
-Password: Enter your Nexus admin password.
-ID: Enter nexus-creds. (This must match the ID you use in your Jenkinsfile).
-Description: (Optional) "Credentials for Sonatype Nexus Repository."
-Save:
-Click Create. 
+Description: Nexus Repository Credentials. 
 ----------------------------------------------
 9.The Jenkins Pipeline (Jenkinsfile)
 Create a Jenkinsfile in your repository root to automate the build:
